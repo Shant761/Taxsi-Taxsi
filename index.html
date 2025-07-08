@@ -1,0 +1,30 @@
+
+<!DOCTYPE html>
+<html lang="hy">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Տաքսիստ Գագոն</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="menu">
+    <h1>Տաքսիստ Գագոն</h1>
+    <button onclick="startGame()">Սկսել խաղը</button>
+    <input type="file" id="musicLoader" accept="audio/*">
+  </div>
+
+  <div id="game" style="display:none;">
+    <div class="road"></div>
+    <div class="car" id="car"></div>
+    <div id="score">Միավոր: 0</div>
+    <div id="controls">
+      <button onclick="pauseGame()">⏸️ Դադար</button>
+      <button onclick="restartGame()">🔁 Վերագործարկել</button>
+    </div>
+    <audio id="bg-music" loop></audio>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
