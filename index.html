@@ -1,30 +1,151 @@
-
 <!DOCTYPE html>
-<html lang="hy">
+<html lang="ru">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Տաքսիստ Գագոն</title>
-  <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <title>CIASOFT — База клиентов</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(120deg, #f0f0f0, #ffffff);
+      margin: 0;
+      padding: 20px;
+    }
+    h1 {
+      text-align: center;
+      color: #333;
+      margin-bottom: 30px;
+      font-size: 32px;
+    }
+    .container {
+      max-width: 1200px;
+      margin: auto;
+    }
+    form {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    input, button {
+      padding: 10px;
+      font-size: 14px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+    }
+    button {
+      cursor: pointer;
+      background: #4CAF50;
+      color: white;
+      transition: background 0.3s;
+    }
+    button:hover {
+      background: #45a049;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+    th, td {
+      padding: 10px;
+      border: 1px solid #ddd;
+      text-align: center;
+      font-size: 14px;
+    }
+    th {
+      background-color: #4CAF50;
+      color: white;
+    }
+    .delete-btn {
+      background: #e74c3c;
+      color: white;
+      border: none;
+      padding: 6px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    .delete-btn:hover {
+      background: #c0392b;
+    }
+  </style>
 </head>
 <body>
-  <div id="menu">
-    <h1>Տաքսիստ Գագոն</h1>
-    <button onclick="startGame()">Սկսել խաղը</button>
-    <input type="file" id="musicLoader" accept="audio/*">
+  <div class="container">
+    <h1>CIASOFT — База клиентов</h1>
+
+    <form id="clientForm">
+      <input type="text" placeholder="Номер клиента" required />
+      <input type="text" placeholder="Название заведения" required />
+      <input type="email" placeholder="@gmail" required />
+      <input type="text" placeholder="Пароль аккаунта" required />
+      <input type="text" placeholder="Название тарифа" />
+      <input type="date" placeholder="Дата создания заведения" />
+      <input type="text" placeholder="Периоды оплаты" />
+      <input type="tel" placeholder="Номер телефона" />
+      <input type="text" placeholder="Комментарий" />
+      <button type="submit">Добавить клиента</button>
+      <button type="button" onclick="exportToExcel()">Скачать Excel</button>
+    </form>
+
+    <table id="clientTable">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Название заведения</th>
+          <th>Email</th>
+          <th>Пароль</th>
+          <th>Тариф</th>
+          <th>Дата</th>
+          <th>Оплата</th>
+          <th>Телефон</th>
+          <th>Комментарий</th>
+          <th>Удалить</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
   </div>
 
-  <div id="game" style="display:none;">
-    <div class="road"></div>
-    <div class="car" id="car"></div>
-    <div id="score">Միավոր: 0</div>
-    <div id="controls">
-      <button onclick="pauseGame()">⏸️ Դադար</button>
-      <button onclick="restartGame()">🔁 Վերագործարկել</button>
-    </div>
-    <audio id="bg-music" loop></audio>
-  </div>
+  <script>
+    const form = document.getElementById('clientForm');
+    const table = document.getElementById('clientTable').getElementsByTagName('tbody')[0];
 
-  <script src="script.js"></script>
+    form.onsubmit = function(e) {
+      e.preventDefault();
+      const values = Array.from(form.querySelectorAll('input')).map(input => input.value);
+      const row = table.insertRow();
+
+      values.forEach(val => {
+        const cell = row.insertCell();
+        cell.textContent = val;
+      });
+
+      const delCell = row.insertCell();
+      const btn = document.createElement('button');
+      btn.textContent = 'Удалить';
+      btn.className = 'delete-btn';
+      btn.onclick = () => row.remove();
+      delCell.appendChild(btn);
+
+      form.reset();
+    };
+
+    function exportToExcel() {
+      const wb = XLSX.utils.book_new();
+      const ws_data = [
+        ["#", "Заведение", "Email", "Пароль", "Тариф", "Дата", "Оплата", "Телефон", "Комментарий"]
+      ];
+
+      Array.from(table.rows).forEach(row => {
+        const data = Array.from(row.cells).slice(0, 9).map(cell => cell.textContent);
+        ws_data.push(data);
+      });
+
+      const ws = XLSX.utils.aoa_to_sheet(ws_data);
+      XLSX.utils.book_append_sheet(wb, ws, "Клиенты");
+      XLSX.writeFile(wb, "ciasoft_clients.xlsx");
+    }
+  </script>
 </body>
 </html>
