@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8" />
-  <title>CIASOFT — Безопасная база клиентов</title>
+  <title>CIASOFT — Редактируемая база клиентов</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
   <style>
@@ -54,22 +54,27 @@
       background-color: #4CAF50;
       color: white;
     }
+    .action-btn {
+      padding: 5px 10px;
+      border-radius: 6px;
+      font-size: 13px;
+      border: none;
+      cursor: pointer;
+    }
     .delete-btn {
       background: #e74c3c;
       color: white;
-      border: none;
-      padding: 6px 10px;
-      border-radius: 6px;
-      cursor: pointer;
     }
-    .delete-btn:hover {
-      background: #c0392b;
+    .edit-btn {
+      background: #3498db;
+      color: white;
+      margin-right: 5px;
     }
   </style>
 </head>
 <body>
 <div class="container">
-  <h1>CIASOFT — Безопасная база клиентов</h1>
+  <h1>CIASOFT — Редактируемая база клиентов</h1>
 
   <div id="login" class="login-box">
     <input type="password" id="passwordInput" placeholder="Введите пароль" />
@@ -87,7 +92,7 @@
       <input type="text" placeholder="Периоды оплаты" />
       <input type="tel" placeholder="Номер телефона" />
       <input type="text" placeholder="Комментарий" />
-      <button type="submit">Добавить клиента</button>
+      <button type="submit" id="submitBtn">Добавить клиента</button>
       <button type="button" onclick="exportToExcel()">Скачать Excel</button>
     </form>
 
@@ -103,7 +108,7 @@
           <th>Оплата</th>
           <th>Телефон</th>
           <th>Комментарий</th>
-          <th>Удалить</th>
+          <th>Действия</th>
         </tr>
       </thead>
       <tbody></tbody>
@@ -114,6 +119,7 @@
 <script>
   let password = '';
   let data = [];
+  let editIndex = -1;
 
   const storageKey = "ciasoft_clients_encrypted";
 
@@ -125,7 +131,7 @@
     try {
       const bytes = CryptoJS.AES.decrypt(cipher, password);
       return JSON.parse(bytes.toString(CryptoJS.enc.Utf8));
-    } catch (e) {
+    } catch {
       return null;
     }
   }
@@ -148,7 +154,6 @@
         alert("Неверный пароль");
       }
     } else {
-      // новый вход
       data = [];
       localStorage.setItem(storageKey, encryptData(data, password));
       document.getElementById('login').style.display = 'none';
@@ -166,16 +171,23 @@
         td.textContent = cell;
         tr.appendChild(td);
       });
-      const delTd = document.createElement("td");
-      const btn = document.createElement("button");
-      btn.textContent = "Удалить";
-      btn.className = "delete-btn";
-      btn.onclick = () => {
+      const actions = document.createElement("td");
+      const editBtn = document.createElement("button");
+      editBtn.textContent = "Редактировать";
+      editBtn.className = "action-btn edit-btn";
+      editBtn.onclick = () => editClient(index);
+
+      const delBtn = document.createElement("button");
+      delBtn.textContent = "Удалить";
+      delBtn.className = "action-btn delete-btn";
+      delBtn.onclick = () => {
         data.splice(index, 1);
         saveAndReload();
       };
-      delTd.appendChild(btn);
-      tr.appendChild(delTd);
+
+      actions.appendChild(editBtn);
+      actions.appendChild(delBtn);
+      tr.appendChild(actions);
       tbody.appendChild(tr);
     });
   }
@@ -189,10 +201,26 @@
     e.preventDefault();
     const inputs = this.querySelectorAll("input");
     const row = Array.from(inputs).map(input => input.value);
-    data.push(row);
+    if (editIndex === -1) {
+      data.push(row);
+    } else {
+      data[editIndex] = row;
+      editIndex = -1;
+      document.getElementById('submitBtn').textContent = "Добавить клиента";
+    }
     saveAndReload();
     this.reset();
   };
+
+  function editClient(index) {
+    const form = document.getElementById("clientForm");
+    const inputs = form.querySelectorAll("input");
+    data[index].forEach((value, i) => {
+      inputs[i].value = value;
+    });
+    editIndex = index;
+    document.getElementById('submitBtn').textContent = "Сохранить изменения";
+  }
 
   function exportToExcel() {
     const wb = XLSX.utils.book_new();
@@ -205,4 +233,3 @@
 </script>
 </body>
 </html>
-
